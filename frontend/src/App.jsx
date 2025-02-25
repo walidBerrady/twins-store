@@ -12,6 +12,8 @@ import TermsPage from "./pages/TermsPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import SizeCategoryPage from "./pages/SizeCategoryPage";
+import HommePage from "./pages/HommePage";
+import FemmePage from "./pages/FemmePage";
 
 function App() {
   return (
@@ -47,6 +49,8 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/shop/:slug" element={<SizeCategoryPage />} />{" "}
+        <Route path="/homme" element={<HommePage />} />
+        <Route path="/femme" element={<FemmePage />} />
       </Routes>
       <Footer />
     </>

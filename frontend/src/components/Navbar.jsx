@@ -43,11 +43,11 @@ const Navbar = () => {
               <Link to="/" className={linkClass("/")}>
                 Home
               </Link>
-              <Link to="/fragrances" className={linkClass("/fragrances")}>
-                Fragrance categories
+              <Link to="/homme" className={linkClass("/homme")}>
+                Homme
               </Link>
-              <Link to="/brands" className={linkClass("/brands")}>
-                Brands
+              <Link to="/femme" className={linkClass("/femme")}>
+                Femme
               </Link>
               <Link to="/about" className={linkClass("/about")}>
                 About
@@ -123,16 +123,16 @@ const Navbar = () => {
               Home
             </Link>
             <Link
-              to="/fragrances"
-              className={`block px-3 py-2 ${linkClass("/fragrances")}`}
+              to="/homme"
+              className={`block px-3 py-2 ${linkClass("/homme")}`}
             >
-              Fragrances
+              Homme
             </Link>
             <Link
-              to="/brands"
-              className={`block px-3 py-2 ${linkClass("/brands")}`}
+              to="/femme"
+              className={`block px-3 py-2 ${linkClass("/femme")}`}
             >
-              Brands
+              Femme
             </Link>
             <Link
               to="/about"
