@@ -12,7 +12,7 @@ import {
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [basketItemsCount, setBasketItemsCount] = useState(0);
   const location = useLocation();
 
