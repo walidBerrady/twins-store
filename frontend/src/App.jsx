@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
 import Navbar from "./components/Navbar";
@@ -15,7 +16,17 @@ import SizeCategoryPage from "./pages/SizeCategoryPage";
 import HommePage from "./pages/HommePage";
 import FemmePage from "./pages/FemmePage";
 
+import { useUserStore } from "./store/useUserStore";
+import LoadingSpinner from "./components/LoadingSpinner";
+
 function App() {
+  const { user, checkAuth, checkingAuth } = useUserStore();
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  if (checkingAuth) return <LoadingSpinner />;
   return (
     <>
       <Navbar />
@@ -46,8 +57,14 @@ function App() {
         <Route path="/shipping" element={<ShippingReturnsPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/terms" element={<TermsPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
+        <Route
+          path="/login"
+          element={!user ? <LoginPage /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/signup"
+          element={!user ? <SignupPage /> : <Navigate to="/" />}
+        />
         <Route path="/shop/:slug" element={<SizeCategoryPage />} />{" "}
         <Route path="/homme" element={<HommePage />} />
         <Route path="/femme" element={<FemmePage />} />

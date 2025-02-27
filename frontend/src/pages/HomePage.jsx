@@ -42,7 +42,14 @@ export default function Home() {
           <p className="text-lg md:text-xl mb-8">
             Discover Your Signature Scent
           </p>
-          <button className="px-6 py-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 rounded-md border border-white/20 transition-colors">
+          <button
+            onClick={() =>
+              document
+                .getElementById("collections")
+                ?.scrollIntoView({ behavior: "smooth" })
+            }
+            className="px-6 py-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 rounded-md border border-white/20 transition-colors"
+          >
             Explore Collection
           </button>
         </div>
@@ -83,7 +90,7 @@ export default function Home() {
       </section>
 
       {/* Gender Categories */}
-      <section className="bg-gray-50 py-16">
+      <section id="collections" className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-3xl font-bold mb-8 text-center text-gray-900">
             Collections

@@ -9,16 +9,13 @@ import {
   LogIn,
   UserPlus,
 } from "lucide-react";
+import { useUserStore } from "../store/useUserStore";
 
 const Navbar = () => {
+  const { user } = useUserStore();
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [basketItemsCount, setBasketItemsCount] = useState(0);
   const location = useLocation();
-
-  const toggleLogin = () => {
-    setIsLoggedIn(!isLoggedIn);
-  };
 
   const isActive = (path) => location.pathname === path;
 
@@ -65,14 +62,28 @@ const Navbar = () => {
               <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
 
-            {isLoggedIn ? (
-              <Link
-                to="/profile"
-                className={`flex items-center ${linkClass("/profile")}`}
-              >
-                <User className="h-6 w-6 mr-1" />
-                <span className="hidden md:inline">Profile</span>
-              </Link>
+            {user ? (
+              <>
+                <Link
+                  to="/profile"
+                  className={`flex items-center ${linkClass("/profile")}`}
+                >
+                  <User className="h-6 w-6 mr-1" />
+                  <span className="hidden md:inline">Profile</span>
+                </Link>
+                <Link
+                  to="/basket"
+                  className={`relative ${linkClass("/basket")}`}
+                >
+                  <ShoppingBag className="h-6 w-6" />
+                  {basketItemsCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                      {basketItemsCount}
+                    </span>
+                  )}
+                  <span className="sr-only">Basket</span>
+                </Link>
+              </>
             ) : (
               <>
                 <Link
@@ -91,16 +102,6 @@ const Navbar = () => {
                 </Link>
               </>
             )}
-
-            <Link to="/basket" className={`relative ${linkClass("/basket")}`}>
-              <ShoppingBag className="h-6 w-6" />
-              {basketItemsCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                  {basketItemsCount}
-                </span>
-              )}
-              <span className="sr-only">Basket</span>
-            </Link>
 
             <button
               className="md:hidden outline-none"
@@ -151,7 +152,7 @@ const Navbar = () => {
               <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
           </div>
-          {!isLoggedIn && (
+          {!user && (
             <div className="px-4 py-3 space-y-2">
               <Link
                 to="/login"
