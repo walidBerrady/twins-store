@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/auth.routes.js";
+import productRoutes from "./routes/product.routes.js";
 
 import { connectDB } from "./lib/db.js";
 
@@ -15,6 +16,7 @@ app.use(express.json()); // Parse JSON requests
 app.use(cookieParser()); // Parse cookies
 
 app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
 
 
 app.listen(PORT, () => {

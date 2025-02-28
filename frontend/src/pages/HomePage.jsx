@@ -1,7 +1,15 @@
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { useEffect } from "react";
+import useProductStore from "../store/useProductStore";
 
 export default function Home() {
+  const { featuredProducts, fetchFeaturedProducts } = useProductStore();
+
+  useEffect(() => {
+    fetchFeaturedProducts(); // Fetch products on component mount
+  }, [fetchFeaturedProducts]);
+
   const categories = [
     {
       size: "5ml",
@@ -144,29 +152,38 @@ export default function Home() {
           Featured Fragrances
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="group bg-white rounded-lg border border-gray-200 shadow-sm"
-            >
-              <div className="p-4">
-                <div className="relative h-48 mb-4 overflow-hidden rounded-md">
-                  <img
-                    src="https://images.unsplash.com/photo-1523293182086-7651a899d37f?q=80&w=300&auto=format&fit=crop"
-                    alt={`Featured Perfume ${i + 1}`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+          {featuredProducts.length > 0 ? (
+            featuredProducts.map((product, index) => (
+              <div
+                key={product._id}
+                className="group bg-white rounded-lg border border-gray-200 shadow-sm"
+              >
+                <div className="p-4">
+                  <div className="relative h-48 mb-4 overflow-hidden rounded-md">
+                    <img
+                      src={product.image} // Use product image URL
+                      alt={product.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <h3 className="font-semibold mb-1 text-gray-900">
+                    {product.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-2">
+                    From ${product.sizes["5ml"].price}
+                  </p>{" "}
+                  {/* Display 5ml price */}
+                  <button className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium text-gray-900 transition-colors">
+                    View Details
+                  </button>
                 </div>
-                <h3 className="font-semibold mb-1 text-gray-900">
-                  Signature Scent {i + 1}
-                </h3>
-                <p className="text-sm text-gray-600 mb-2">From $89.99</p>
-                <button className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium text-gray-900 transition-colors">
-                  View Details
-                </button>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="col-span-4 text-center text-gray-500">
+              No featured products available.
+            </p>
+          )}
         </div>
       </section>
     </main>
