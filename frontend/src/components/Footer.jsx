@@ -18,12 +18,12 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <Link to="/fragrances" className="text-sm hover:text-gray-300">
-                  Fragrances
+                  Femme
                 </Link>
               </li>
               <li>
                 <Link to="/brands" className="text-sm hover:text-gray-300">
-                  Brands
+                  Homme
                 </Link>
               </li>
               <li>
