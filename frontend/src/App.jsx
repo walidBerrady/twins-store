@@ -15,6 +15,8 @@ import SignupPage from "./pages/SignupPage";
 import SizeCategoryPage from "./pages/SizeCategoryPage";
 import HommePage from "./pages/HommePage";
 import FemmePage from "./pages/FemmePage";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ConatcPage";
 
 import { useUserStore } from "./store/useUserStore";
 import LoadingSpinner from "./components/LoadingSpinner";
@@ -68,6 +70,8 @@ function App() {
         <Route path="/shop/:slug" element={<SizeCategoryPage />} />{" "}
         <Route path="/homme" element={<HommePage />} />
         <Route path="/femme" element={<FemmePage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
       </Routes>
       <Footer />
     </>
