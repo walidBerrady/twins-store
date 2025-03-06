@@ -5,14 +5,14 @@ import {
   X,
   Search,
   ShoppingBag,
-  User,
   LogIn,
   UserPlus,
+  LogOut,
 } from "lucide-react";
 import { useUserStore } from "../store/useUserStore";
 
 const Navbar = () => {
-  const { user } = useUserStore();
+  const { user, logout } = useUserStore();
   const [isOpen, setIsOpen] = useState(false);
   const [basketItemsCount, setBasketItemsCount] = useState(0);
   const location = useLocation();
@@ -64,23 +64,24 @@ const Navbar = () => {
 
             {user ? (
               <>
-                <Link
-                  to="/profile"
-                  className={`flex items-center ${linkClass("/profile")}`}
+                <button
+                  onClick={logout}
+                  className={`flex items-center ${linkClass("/logout")}`}
                 >
-                  <User className="h-6 w-6 mr-1" />
-                  <span className="hidden md:inline">Profile</span>
-                </Link>
+                  <LogOut className="h-6 w-6 mr-1" />
+                  <span className="hidden md:inline">Logout</span>
+                </button>
                 <Link
                   to="/basket"
                   className={`relative ${linkClass("/basket")}`}
                 >
                   <ShoppingBag className="h-6 w-6" />
-                  {basketItemsCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                      {basketItemsCount}
-                    </span>
-                  )}
+
+                  {/* Always show "3" as the badge number */}
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                    3
+                  </span>
+
                   <span className="sr-only">Basket</span>
                 </Link>
               </>
