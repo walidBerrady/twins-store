@@ -10,9 +10,11 @@ import {
   LogOut,
 } from "lucide-react";
 import { useUserStore } from "../store/useUserStore";
+import { useCartStore } from "../store/useCartStore";
 
 const Navbar = () => {
   const { user, logout } = useUserStore();
+  const { cart } = useCartStore();
   const [isOpen, setIsOpen] = useState(false);
   const [basketItemsCount, setBasketItemsCount] = useState(0);
   const location = useLocation();
@@ -77,10 +79,11 @@ const Navbar = () => {
                 >
                   <ShoppingBag className="h-6 w-6" />
 
-                  {/* Always show "3" as the badge number */}
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                    3
-                  </span>
+                  {cart.length > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                      {cart.length}
+                    </span>
+                  )}
 
                   <span className="sr-only">Basket</span>
                 </Link>

@@ -17,16 +17,23 @@ import HommePage from "./pages/HommePage";
 import FemmePage from "./pages/FemmePage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ConatcPage";
+import { CartPage } from "./pages/CartPage";
 
 import { useUserStore } from "./store/useUserStore";
 import LoadingSpinner from "./components/LoadingSpinner";
+import { useCartStore } from "./store/useCartStore";
 
 function App() {
   const { user, checkAuth, checkingAuth } = useUserStore();
+  const { getCartItems } = useCartStore();
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  useEffect(() => {
+    getCartItems();
+  }, [getCartItems]);
 
   if (checkingAuth) return <LoadingSpinner />;
   return (
@@ -72,6 +79,10 @@ function App() {
         <Route path="/femme" element={<FemmePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route
+          path="basket"
+          element={user ? <CartPage /> : <Navigate to="/login" />}
+        />
       </Routes>
       <Footer />
     </>

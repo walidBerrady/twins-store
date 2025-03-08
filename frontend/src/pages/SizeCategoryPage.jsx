@@ -4,8 +4,13 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ShoppingBag, ArrowLeft, Loader2 } from "lucide-react";
 import useProductStore from "../store/useProductStore";
+import { useCartStore } from "../store/useCartStore";
+import { useUserStore } from "../store/useUserStore";
+import toast from "react-hot-toast";
 
 export default function SizeCategoryPage() {
+  const { addToCart } = useCartStore();
+  const { user } = useUserStore();
   const { slug } = useParams();
   const { products, fetchProducts, loading, error } = useProductStore();
   const [quantities, setQuantities] = useState({});
@@ -41,26 +46,25 @@ export default function SizeCategoryPage() {
   };
 
   const handleAddToCart = (product) => {
-    // Only allow adding to cart if the product is in stock
-    if (!isProductInStock(product, size)) {
-      return;
+    if (!user) {
+      toast.error("Please log in to add items to your cart.");
+    } else {
+      // Only allow adding to cart if the product is in stock
+      if (!isProductInStock(product, size)) {
+        return;
+      }
+
+      // Show loading state
+      setAddingToCart((prev) => ({ ...prev, [product._id]: true }));
+
+      // add to cart
+      addToCart(product);
+
+      // Simulate a brief loading state
+      setTimeout(() => {
+        setAddingToCart((prev) => ({ ...prev, [product._id]: false }));
+      }, 600);
     }
-
-    // Show loading state
-    setAddingToCart((prev) => ({ ...prev, [product._id]: true }));
-
-    console.log("Added to cart:", {
-      productId: product._id,
-      name: product.name,
-      quantity: quantities[product._id] || 1,
-      size: size,
-      price: product.sizes[size].price,
-    });
-
-    // Simulate a brief loading state
-    setTimeout(() => {
-      setAddingToCart((prev) => ({ ...prev, [product._id]: false }));
-    }, 600);
   };
 
   return (

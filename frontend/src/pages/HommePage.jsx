@@ -3,8 +3,13 @@
 import { useEffect, useState } from "react";
 import { ShoppingBag, Loader2 } from "lucide-react";
 import useProductStore from "../store/useProductStore";
+import { useUserStore } from "../store/useUserStore";
+import toast from "react-hot-toast";
+import { useCartStore } from "../store/useCartStore";
 
 function HommePage() {
+  const { addToCart } = useCartStore();
+  const { user } = useUserStore();
   const { products, fetchProducts, loading, error } = useProductStore();
   const [selectedSizes, setSelectedSizes] = useState({});
   const [addingToCart, setAddingToCart] = useState({});
@@ -58,28 +63,27 @@ function HommePage() {
   };
 
   const handleAddToCart = (product) => {
-    const selectedSize =
-      selectedSizes[product._id] || Object.keys(product.sizes)[0];
+    if (!user) {
+      toast.error("Please log in to add items to your cart.");
+    } else {
+      const selectedSize =
+        selectedSizes[product._id] || Object.keys(product.sizes)[0];
 
-    // Only allow adding to cart if the selected size is in stock
-    if (!isProductInStock(product, selectedSize)) {
-      return;
+      // Only allow adding to cart if the selected size is in stock
+      if (!isProductInStock(product, selectedSize)) {
+        return;
+      }
+
+      setAddingToCart((prev) => ({ ...prev, [product._id]: true }));
+
+      // add to cart
+      addToCart(product);
+
+      // Simulate a brief loading state
+      setTimeout(() => {
+        setAddingToCart((prev) => ({ ...prev, [product._id]: false }));
+      }, 600);
     }
-
-    setAddingToCart((prev) => ({ ...prev, [product._id]: true }));
-
-    console.log("Added to cart:", {
-      productId: product._id,
-      name: product.name,
-      quantity: 1,
-      size: selectedSize,
-      price: product.sizes[selectedSize].price,
-    });
-
-    // Simulate a brief loading state
-    setTimeout(() => {
-      setAddingToCart((prev) => ({ ...prev, [product._id]: false }));
-    }, 600);
   };
 
   return (
