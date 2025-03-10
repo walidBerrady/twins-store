@@ -83,8 +83,10 @@ export function CartPage() {
     removeFromCart,
     calculateTotals,
     clearCart,
+    debugCart,
   } = useCartStore();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [localCart, setLocalCart] = useState([]);
 
   // Format prices with protection against NaN
   const formattedSubtotal = isNaN(subtotal) ? "0.00" : subtotal.toFixed(2);
@@ -92,12 +94,26 @@ export function CartPage() {
 
   useEffect(() => {
     getCartItems();
+    // Debug the cart after loading
+    setTimeout(() => {
+      debugCart();
+    }, 1000);
   }, []);
 
+  // Create a local copy of the cart to ensure we have the correct sizes
   useEffect(() => {
-    // Call calculateTotals whenever cart changes
     if (cart.length > 0) {
+      // Make a deep copy of the cart to ensure we don't lose any data
+      const cartCopy = cart.map((item) => ({
+        ...item,
+        // Ensure the sizes object is properly copied
+        sizes: item.sizes ? { ...item.sizes } : null,
+      }));
+
+      setLocalCart(cartCopy);
       calculateTotals();
+    } else {
+      setLocalCart([]);
     }
   }, [cart, calculateTotals]);
 
@@ -116,30 +132,38 @@ export function CartPage() {
     }, 2000);
   };
 
-  // Helper function to safely get price
+  // Get the price for an item based on its selected size
   const getItemPrice = (item) => {
-    if (!item || item.price == null) return 0;
-
-    if (typeof item.price === "number") {
-      return item.price;
+    if (!item || !item.sizes) {
+      console.warn("Invalid item or missing sizes", item);
+      return 0;
     }
 
-    if (typeof item.price === "string") {
-      // Remove any non-numeric characters except for decimal points
-      const cleanedPrice = item.price.replace(/[^\d.-]/g, "");
-      const parsed = Number.parseFloat(cleanedPrice);
-
-      // Check if parsing was successful
-      if (isNaN(parsed)) {
-        console.warn(`Failed to parse price for ${item.name}: ${item.price}`);
-        return 0;
-      }
-
-      return parsed;
+    // Use the item's selectedSize
+    if (!item.selectedSize) {
+      console.warn("Item has no selectedSize property:", item);
+      return 0;
     }
 
-    // If we reach here, the price is in an unexpected format
-    console.warn(`Unexpected price format for ${item.name}: ${item.price}`);
+    console.log(`Getting price for ${item.name}, size: ${item.selectedSize}`);
+    console.log("Available sizes:", Object.keys(item.sizes));
+
+    // Check if the selected size exists in the sizes object
+    if (
+      item.sizes[item.selectedSize] &&
+      item.sizes[item.selectedSize].price !== undefined
+    ) {
+      const price = Number.parseFloat(item.sizes[item.selectedSize].price);
+      console.log(`Found price for ${item.selectedSize}: ${price}`);
+      return price;
+    }
+
+    console.warn(
+      `Size ${item.selectedSize} not found or has no price for ${item.name}`
+    );
+    console.warn("Available sizes:", item.sizes);
+
+    // If we can't find a price, return 0
     return 0;
   };
 
@@ -158,7 +182,7 @@ export function CartPage() {
         Review your items and proceed to checkout
       </p>
 
-      {cart.length === 0 ? (
+      {localCart.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="flex justify-center mb-6">
             <ShoppingBag className="h-20 w-20 text-gray-300" />
@@ -182,11 +206,11 @@ export function CartPage() {
               <div className="p-4 bg-gray-50 border-b border-gray-200">
                 <h2 className="font-medium text-lg flex items-center">
                   <ShoppingCart className="mr-2 h-5 w-5 text-purple-600" />
-                  Cart Items ({cart.length})
+                  Cart Items ({localCart.length})
                 </h2>
               </div>
               <div className="divide-y divide-gray-200">
-                {cart.map((item) => (
+                {localCart.map((item) => (
                   <div
                     key={item._id}
                     className="p-6 flex flex-col sm:flex-row gap-6 hover:bg-gray-50 transition-colors"
@@ -204,9 +228,9 @@ export function CartPage() {
                           <h3 className="font-medium text-lg text-gray-900">
                             {item.name}
                           </h3>
-                          {item.size && (
+                          {item.selectedSize && (
                             <p className="text-sm text-gray-500 mt-1">
-                              {item.size}
+                              Size: {item.selectedSize}
                             </p>
                           )}
                           {item.brand && (

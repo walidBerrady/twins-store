@@ -65,25 +65,33 @@ function HommePage() {
   const handleAddToCart = (product) => {
     if (!user) {
       toast.error("Please log in to add items to your cart.");
-    } else {
-      const selectedSize =
-        selectedSizes[product._id] || Object.keys(product.sizes)[0];
-
-      // Only allow adding to cart if the selected size is in stock
-      if (!isProductInStock(product, selectedSize)) {
-        return;
-      }
-
-      setAddingToCart((prev) => ({ ...prev, [product._id]: true }));
-
-      // add to cart
-      addToCart(product);
-
-      // Simulate a brief loading state
-      setTimeout(() => {
-        setAddingToCart((prev) => ({ ...prev, [product._id]: false }));
-      }, 600);
+      return;
     }
+
+    const selectedSize =
+      selectedSizes[product._id] || Object.keys(product.sizes)[0];
+
+    console.log("Adding to cart with size:", selectedSize);
+    console.log("Product sizes:", product.sizes);
+
+    // Only allow adding to cart if the selected size is in stock
+    if (!isProductInStock(product, selectedSize)) {
+      return;
+    }
+
+    // Get the price based on the selected size
+    const selectedPrice = product.sizes[selectedSize]?.price || product.price;
+    console.log(`Price for ${selectedSize}:`, selectedPrice);
+
+    setAddingToCart((prev) => ({ ...prev, [product._id]: true }));
+
+    // Pass the selected size and price to addToCart
+    addToCart({ ...product, selectedSize, selectedPrice });
+
+    // Simulate a brief loading state
+    setTimeout(() => {
+      setAddingToCart((prev) => ({ ...prev, [product._id]: false }));
+    }, 600);
   };
 
   return (
