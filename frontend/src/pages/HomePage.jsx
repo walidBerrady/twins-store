@@ -7,7 +7,7 @@ export default function Home() {
   const { featuredProducts, fetchFeaturedProducts } = useProductStore();
 
   useEffect(() => {
-    fetchFeaturedProducts(); // Fetch products on component mount
+    fetchFeaturedProducts(); 
   }, [fetchFeaturedProducts]);
 
   const categories = [
