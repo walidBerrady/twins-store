@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { ShoppingBag, Loader2 } from "lucide-react";
 import useProductStore from "../store/useProductStore";
@@ -26,14 +24,21 @@ function FemmePage() {
     fetchProducts({ category: "Femme" }); // Fetch Femme products
   }, [fetchProducts]);
 
-  // Set initial sizes when products load
+  // Set initial sizes when products load and check for saved preferences
   useEffect(() => {
     if (products.length > 0) {
       const initialSizes = {};
       products.forEach((product) => {
-        const sizes = Object.keys(product.sizes || {});
-        if (sizes.length > 0) {
-          initialSizes[product._id] = sizes[0];
+        // Check if we have a saved size preference in localStorage
+        const savedSize = localStorage.getItem(`product-size-${product._id}`);
+        if (savedSize && product.sizes && product.sizes[savedSize]) {
+          initialSizes[product._id] = savedSize;
+        } else {
+          // Otherwise use the first available size
+          const sizes = Object.keys(product.sizes || {});
+          if (sizes.length > 0) {
+            initialSizes[product._id] = sizes[0];
+          }
         }
       });
       setSelectedSizes(initialSizes);
@@ -45,36 +50,55 @@ function FemmePage() {
       ...prev,
       [productId]: size,
     }));
+
+    // Save the selected size to localStorage for persistence
+    localStorage.setItem(`product-size-${productId}`, size);
+
+    console.log(`Size changed to ${size} for product ${productId}`);
   };
 
   const isProductInStock = (product, size) => {
     return product.sizes?.[size]?.stock > 0;
   };
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = async (product) => {
     if (!user) {
       toast.error("Please log in to add items to your cart.");
-    } else {
-      const selectedSize =
-        selectedSizes[product._id] || Object.keys(product.sizes)[0];
+      return;
+    }
 
-      console.log("Adding to cart with size:", selectedSize);
-      console.log("Product sizes:", product.sizes);
+    const selectedSize =
+      selectedSizes[product._id] || Object.keys(product.sizes)[0];
 
-      // Only allow adding to cart if the selected size is in stock
-      if (!isProductInStock(product, selectedSize)) {
-        return;
-      }
+    console.log("Adding to cart with size:", selectedSize);
+    console.log("Product sizes:", product.sizes);
 
-      setAddingToCart((prev) => ({ ...prev, [product._id]: true }));
+    // Only allow adding to cart if the selected size is in stock
+    if (!isProductInStock(product, selectedSize)) {
+      toast.error(`${product.name} is out of stock in size ${selectedSize}`);
+      return;
+    }
 
-      // Pass the selected size to addToCart
-      addToCart(product, selectedSize);
+    // Get the price based on the selected size
+    const selectedPrice = product.sizes[selectedSize]?.price || product.price;
+    console.log(`Price for ${selectedSize}:`, selectedPrice);
+
+    setAddingToCart((prev) => ({ ...prev, [product._id]: true }));
+
+    try {
+      // Pass the selected size directly as the second parameter to addToCart
+      await addToCart(product, selectedSize);
+
+      toast.success(`Added ${product.name} (${selectedSize}) to cart`);
 
       // Simulate a brief loading state
       setTimeout(() => {
         setAddingToCart((prev) => ({ ...prev, [product._id]: false }));
       }, 600);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error("Failed to add item to cart");
+      setAddingToCart((prev) => ({ ...prev, [product._id]: false }));
     }
   };
 
@@ -122,7 +146,7 @@ function FemmePage() {
           {products.map((product) => {
             const selectedSize =
               selectedSizes[product._id] ||
-              Object.keys(product.sizes)[0] ||
+              Object.keys(product.sizes || {})[0] ||
               "5ml";
             const currentPrice = product.sizes?.[selectedSize]?.price;
             const isInStock = isProductInStock(product, selectedSize);

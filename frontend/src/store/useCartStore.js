@@ -17,6 +17,13 @@ export const useCartStore = create((set, get) => ({
 
       // Ensure each item has the correct selectedSize property
       const cartWithSizes = res.data.map((item) => {
+        // Check if we have a saved size preference in localStorage
+        const savedSize = localStorage.getItem("cart-size-" + item._id)
+        if (savedSize && item.sizes && item.sizes[savedSize]) {
+          console.log(`Found saved size preference for ${item.name}: ${savedSize}`)
+          return { ...item, selectedSize: savedSize }
+        }
+
         // If the item doesn't have a selectedSize but has a size property, use that
         if (!item.selectedSize && item.size) {
           console.log(`Item ${item.name} has size property but no selectedSize, using size: ${item.size}`)
@@ -44,8 +51,15 @@ export const useCartStore = create((set, get) => ({
 
   clearCart: async () => {
     set({ cart: [], coupon: null, total: 0, subtotal: 0 })
+
+    // Clear all cart size preferences from localStorage
+    const { cart } = get()
+    cart.forEach((item) => {
+      localStorage.removeItem("cart-size-" + item._id)
+    })
   },
 
+  // Update the addToCart function to accept the selectedSize as a separate parameter
   addToCart: async (product, selectedSize = "Full") => {
     try {
       console.log("Adding to cart with size:", selectedSize)
@@ -65,38 +79,41 @@ export const useCartStore = create((set, get) => ({
         console.warn(`Selected size ${selectedSize} not found in product sizes`)
       }
 
+      // Check if the item already exists in the cart with the same size
+      const { cart } = get()
+      const existingItem = cart.find((item) => item._id === product._id && item.selectedSize === selectedSize)
+
+      if (existingItem) {
+        console.log(
+          `Item already exists in cart with size ${selectedSize}, updating quantity instead of adding new item`,
+        )
+        await get().updateQuantity(product._id, existingItem.quantity + 1)
+        return
+      }
+
+      // If the item doesn't exist in the cart with this size, add it
       await axios.post("/cart", {
         productId: product._id,
         size: selectedSize,
       })
 
-      toast.success(`Added ${selectedSize} to cart`)
+      // Save the selected size to localStorage
+      localStorage.setItem("cart-size-" + product._id, selectedSize)
 
       set((prevState) => {
-        // Use both ID and size to identify unique items
-        const existingItem = prevState.cart.find(
-          (item) => item._id === product._id && item.selectedSize === selectedSize,
-        )
-
         // Create a new product object with the selected size
         const productWithSize = {
           ...product,
           selectedSize: selectedSize,
         }
 
-        const newCart = existingItem
-          ? prevState.cart.map((item) =>
-              item._id === product._id && item.selectedSize === selectedSize
-                ? { ...item, quantity: item.quantity + 1 }
-                : item,
-            )
-          : [
-              ...prevState.cart,
-              {
-                ...productWithSize,
-                quantity: 1,
-              },
-            ]
+        const newCart = [
+          ...prevState.cart,
+          {
+            ...productWithSize,
+            quantity: 1,
+          },
+        ]
 
         // Log the new cart state
         console.log("Updated cart:", newCart)
@@ -112,6 +129,9 @@ export const useCartStore = create((set, get) => ({
   },
 
   removeFromCart: async (productId) => {
+    // Remove the size preference from localStorage
+    localStorage.removeItem("cart-size-" + productId)
+
     await axios.delete(`/cart`, { data: { productId } })
     set((prevState) => ({ cart: prevState.cart.filter((item) => item._id !== productId) }))
     get().calculateTotals()
@@ -128,6 +148,39 @@ export const useCartStore = create((set, get) => ({
       cart: prevState.cart.map((item) => (item._id === productId ? { ...item, quantity } : item)),
     }))
     get().calculateTotals()
+  },
+
+  // Add updateItemSize function to handle size changes
+  updateItemSize: async (productId, newSize) => {
+    try {
+      // Save the selected size to localStorage
+      localStorage.setItem("cart-size-" + productId, newSize)
+
+      // Update on the server
+      await axios.put(`/cart/size/${productId}`, { size: newSize })
+
+      // Update local state
+      set((prevState) => ({
+        cart: prevState.cart.map((item) => (item._id === productId ? { ...item, selectedSize: newSize } : item)),
+      }))
+
+      // Recalculate totals with the new size
+      get().calculateTotals()
+
+      console.log(`Size updated to ${newSize} for product ${productId}`)
+    } catch (error) {
+      // Even if the server update fails, still update the local state and localStorage
+      localStorage.setItem("cart-size-" + productId, newSize)
+
+      set((prevState) => ({
+        cart: prevState.cart.map((item) => (item._id === productId ? { ...item, selectedSize: newSize } : item)),
+      }))
+
+      get().calculateTotals()
+
+      toast.error("Failed to update size on server, but local changes were saved")
+      console.error("Update size error:", error)
+    }
   },
 
   // Calculate totals with size-based pricing
@@ -206,6 +259,12 @@ export const useCartStore = create((set, get) => ({
         } else {
           console.warn(`Selected size ${item.selectedSize} not found in sizes object`)
         }
+      }
+
+      // Check if we have a saved size preference in localStorage
+      const savedSize = localStorage.getItem("cart-size-" + item._id)
+      if (savedSize) {
+        console.log(`Saved size preference for ${item.name}: ${savedSize}`)
       }
     })
   },

@@ -1,10 +1,18 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Trash2, ShoppingBag, Plus, Minus, ShoppingCart, Truck, Check } from "lucide-react"
-import { useCartStore } from "../store/useCartStore"
-import { toast } from "react-hot-toast"
-import { useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react";
+import {
+  Trash2,
+  ShoppingBag,
+  Plus,
+  Minus,
+  ShoppingCart,
+  Truck,
+  Check,
+} from "lucide-react";
+import { useCartStore } from "../store/useCartStore";
+import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 // UI Components
 const Button = ({
@@ -17,21 +25,21 @@ const Button = ({
   ...props
 }) => {
   const baseStyles =
-    "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background"
+    "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background";
 
   const variants = {
     default: "bg-purple-600 text-white hover:bg-purple-700",
     outline: "border border-gray-300 hover:bg-gray-50 text-gray-700",
     ghost: "hover:bg-gray-100 text-gray-700",
     link: "text-purple-600 hover:underline underline-offset-4 hover:text-purple-700 p-0 h-auto",
-  }
+  };
 
   const sizes = {
     default: "h-10 py-2 px-4",
     sm: "h-9 px-3 rounded-md text-sm",
     lg: "h-11 px-8 rounded-md",
     icon: "h-10 w-10",
-  }
+  };
 
   return (
     <button
@@ -42,8 +50,8 @@ const Button = ({
     >
       {children}
     </button>
-  )
-}
+  );
+};
 
 const Input = ({ className = "", ...props }) => {
   return (
@@ -51,27 +59,73 @@ const Input = ({ className = "", ...props }) => {
       className={`flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-400 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       {...props}
     />
-  )
-}
+  );
+};
 
 const Card = ({ className = "", children, ...props }) => {
   return (
-    <div className={`rounded-lg border border-gray-200 bg-white text-gray-900 shadow-sm ${className}`} {...props}>
+    <div
+      className={`rounded-lg border border-gray-200 bg-white text-gray-900 shadow-sm ${className}`}
+      {...props}
+    >
       {children}
     </div>
-  )
-}
+  );
+};
 
-// Update the SizeSelector component to ensure it properly handles the specific sizes
-// Replace the existing SizeSelector component with this enhanced version:
+// Enhance the getItemPrice function to better handle size-based pricing
+const getItemPrice = (item) => {
+  if (!item || !item.sizes) {
+    console.warn("Invalid item or missing sizes", item);
+    return 0;
+  }
 
+  // If no selectedSize is set, default to the first available size
+  if (!item.selectedSize) {
+    const firstSize = Object.keys(item.sizes)[0];
+    if (
+      firstSize &&
+      item.sizes[firstSize] &&
+      item.sizes[firstSize].price !== undefined
+    ) {
+      console.log(`No selected size, defaulting to ${firstSize}`);
+      return Number.parseFloat(item.sizes[firstSize].price);
+    }
+    console.warn(
+      "Item has no selectedSize property and no default could be found:",
+      item
+    );
+    return 0;
+  }
+
+  // Check if the selected size exists in the sizes object
+  if (
+    item.sizes[item.selectedSize] &&
+    item.sizes[item.selectedSize].price !== undefined
+  ) {
+    const price = Number.parseFloat(item.sizes[item.selectedSize].price);
+    console.log(
+      `Using price ${price} for size ${item.selectedSize} of ${item.name}`
+    );
+    return price;
+  }
+
+  console.warn(
+    `Size ${item.selectedSize} not found or has no price for ${item.name}`
+  );
+
+  // If we can't find a price, return 0
+  return 0;
+};
+
+// Update the SizeSelector component to display price with each size option
 const SizeSelector = ({ item, onSizeChange }) => {
   // Define available sizes
   const availableSizes = Object.keys(item.sizes || {}).filter(
-    (size) => item.sizes[size] && item.sizes[size].price !== undefined,
-  )
+    (size) => item.sizes[size] && item.sizes[size].price !== undefined
+  );
 
-  if (availableSizes.length <= 1) return null
+  if (availableSizes.length <= 1) return null;
 
   return (
     <div className="mt-2">
@@ -87,49 +141,28 @@ const SizeSelector = ({ item, onSizeChange }) => {
                 : "border-gray-300 hover:border-gray-400"
             }`}
           >
-            {size === "5ml" || size === "10ml" ? size : size === "full" ? "Full Size" : size}
-            {item.selectedSize === size && <Check className="ml-1 inline-block h-3.5 w-3.5" />}
+            {size === "5ml" || size === "10ml"
+              ? size
+              : size === "full"
+              ? "Full Size"
+              : size}
+            {item.sizes[size] && item.sizes[size].price !== undefined && (
+              <span className="ml-1">
+                ${Number.parseFloat(item.sizes[size].price).toFixed(2)}
+              </span>
+            )}
+            {item.selectedSize === size && (
+              <Check className="ml-1 inline-block h-3.5 w-3.5" />
+            )}
           </button>
         ))}
       </div>
     </div>
-  )
-}
-
-// Enhance the getItemPrice function to better handle size-based pricing
-// Replace the existing getItemPrice function with this improved version:
-
-const getItemPrice = (item) => {
-  if (!item || !item.sizes) {
-    console.warn("Invalid item or missing sizes", item)
-    return 0
-  }
-
-  // If no selectedSize is set, default to the first available size
-  if (!item.selectedSize) {
-    const firstSize = Object.keys(item.sizes)[0]
-    if (firstSize && item.sizes[firstSize] && item.sizes[firstSize].price !== undefined) {
-      console.log(`No selected size, defaulting to ${firstSize}`)
-      return Number.parseFloat(item.sizes[firstSize].price)
-    }
-    console.warn("Item has no selectedSize property and no default could be found:", item)
-    return 0
-  }
-
-  // Check if the selected size exists in the sizes object
-  if (item.sizes[item.selectedSize] && item.sizes[item.selectedSize].price !== undefined) {
-    const price = Number.parseFloat(item.sizes[item.selectedSize].price)
-    return price
-  }
-
-  console.warn(`Size ${item.selectedSize} not found or has no price for ${item.name}`)
-
-  // If we can't find a price, return 0
-  return 0
-}
+  );
+};
 
 export function CartPage() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const {
     total,
     subtotal,
@@ -140,26 +173,84 @@ export function CartPage() {
     calculateTotals,
     clearCart,
     debugCart,
-    updateItemSize,
-  } = useCartStore()
-  const [checkoutLoading, setCheckoutLoading] = useState(false)
-  const [localCart, setLocalCart] = useState([])
+  } = useCartStore();
+
+  // Add the updateItemSize function with server persistence
+  const updateItemSize = async (productId, newSize) => {
+    try {
+      // First update the server to persist the size change
+      const response = await fetch(`/api/cart/size/${productId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ size: newSize }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update size on server");
+      }
+
+      // Then update the local state
+      const { cart } = useCartStore.getState();
+      const updatedCart = cart.map((item) =>
+        item._id === productId ? { ...item, selectedSize: newSize } : item
+      );
+
+      // Save to localStorage to persist between refreshes
+      localStorage.setItem("cart-size-" + productId, newSize);
+
+      // Update the store state
+      useCartStore.setState({ cart: updatedCart });
+      calculateTotals();
+
+      console.log(`Size updated to ${newSize} for product ${productId}`);
+    } catch (error) {
+      console.error("Error updating size:", error);
+      // Still update the local state even if server update fails
+      const { cart } = useCartStore.getState();
+      const updatedCart = cart.map((item) =>
+        item._id === productId ? { ...item, selectedSize: newSize } : item
+      );
+
+      // Save to localStorage to persist between refreshes
+      localStorage.setItem("cart-size-" + productId, newSize);
+
+      useCartStore.setState({ cart: updatedCart });
+      calculateTotals();
+    }
+  };
+
+  // Move handleSizeChange inside the component so it has access to updateItemSize and calculateTotals
+  const handleSizeChange = (productId, newSize) => {
+    console.log(`Changing size to ${newSize} for product ${productId}`);
+    updateItemSize(productId, newSize);
+    // Force recalculation of totals after size change
+    setTimeout(() => {
+      calculateTotals();
+    }, 100);
+    toast.success(
+      `Size updated to ${newSize === "full" ? "Full Size" : newSize}`
+    );
+  };
+
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [localCart, setLocalCart] = useState([]);
 
   // Format prices with protection against NaN
-  const formattedSubtotal = isNaN(subtotal) ? "0.00" : subtotal.toFixed(2)
-  const formattedTotal = isNaN(total) ? "0.00" : total.toFixed(2)
+  const formattedSubtotal = isNaN(subtotal) ? "0.00" : subtotal.toFixed(2);
+  const formattedTotal = isNaN(total) ? "0.00" : total.toFixed(2);
 
   useEffect(() => {
-    getCartItems()
+    getCartItems();
     // Debug the cart after loading
     setTimeout(() => {
-      debugCart()
-    }, 1000)
-  }, [getCartItems, debugCart])
+      debugCart();
+    }, 1000);
+  }, [getCartItems, debugCart]);
 
   // Update the useEffect that creates the local cart copy to ensure sizes are properly initialized
-  // Replace the existing useEffect with this enhanced version:
-
+  // and ensure it recalculates totals after updating
   useEffect(() => {
     if (cart.length > 0) {
       // Make a deep copy of the cart to ensure we don't lose any data
@@ -169,87 +260,97 @@ export function CartPage() {
           ...item,
           // Ensure the sizes object is properly copied
           sizes: item.sizes ? { ...item.sizes } : null,
-        }
+        };
 
+        // Check if we have a saved size preference in localStorage
+        const savedSize = localStorage.getItem("cart-size-" + item._id);
+        if (savedSize && updatedItem.sizes && updatedItem.sizes[savedSize]) {
+          console.log(
+            `Found saved size preference for ${item.name}: ${savedSize}`
+          );
+          updatedItem.selectedSize = savedSize;
+        }
         // If no selectedSize is set, default to the first available size
-        if (!updatedItem.selectedSize && updatedItem.sizes) {
+        else if (!updatedItem.selectedSize && updatedItem.sizes) {
           const availableSizes = Object.keys(updatedItem.sizes).filter(
-            (size) => updatedItem.sizes[size] && updatedItem.sizes[size].price !== undefined,
-          )
+            (size) =>
+              updatedItem.sizes[size] &&
+              updatedItem.sizes[size].price !== undefined
+          );
 
           // Prioritize sizes in this order: 5ml, 10ml, full
-          const preferredOrder = ["5ml", "10ml", "full"]
-          let defaultSize = null
+          const preferredOrder = ["5ml", "10ml", "full"];
+          let defaultSize = null;
 
           // Try to find a size in the preferred order
           for (const size of preferredOrder) {
             if (availableSizes.includes(size)) {
-              defaultSize = size
-              break
+              defaultSize = size;
+              break;
             }
           }
 
           // If no preferred size is found, use the first available
           if (!defaultSize && availableSizes.length > 0) {
-            defaultSize = availableSizes[0]
+            defaultSize = availableSizes[0];
           }
 
           if (defaultSize) {
-            updatedItem.selectedSize = defaultSize
+            updatedItem.selectedSize = defaultSize;
+            console.log(
+              `Set default size ${defaultSize} for ${updatedItem.name}`
+            );
           }
         }
 
-        return updatedItem
-      })
+        return updatedItem;
+      });
 
-      setLocalCart(cartCopy)
-      calculateTotals()
+      setLocalCart(cartCopy);
+      calculateTotals();
     } else {
-      setLocalCart([])
+      setLocalCart([]);
     }
-  }, [cart, calculateTotals])
+  }, [cart, calculateTotals]);
 
   const handleQuantityChange = (productId, newQuantity) => {
-    if (newQuantity < 1) return
-    updateQuantity(productId, newQuantity)
-  }
+    if (newQuantity < 1) return;
+    updateQuantity(productId, newQuantity);
+  };
 
-  const handleSizeChange = (productId, newSize) => {
-    updateItemSize(productId, newSize)
-    toast.success(`Size updated to ${newSize === "full" ? "Full Size" : newSize}`)
-  }
+  const getItemTotal = (item) => {
+    const price = getItemPrice(item);
+    return price * item.quantity;
+  };
 
   const handleCheckout = () => {
-    setCheckoutLoading(true)
-    // Simulate checkout process
+    setCheckoutLoading(true);
     setTimeout(() => {
-      clearCart()
-      toast.success("Order placed successfully!")
-      setCheckoutLoading(false)
-    }, 2000)
-  }
-
-  // Get the price for an item based on its selected size
-
-  // Calculate item total
-  const getItemTotal = (item) => {
-    const price = getItemPrice(item)
-    return price * item.quantity
-  }
+      setCheckoutLoading(false);
+      toast.success("Checkout completed successfully!");
+    }, 2000);
+  };
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-6xl">
-      <h1 className="text-3xl font-serif font-medium mb-2 text-center text-gray-900">Your Shopping Cart</h1>
-      <p className="text-center text-gray-500 mb-8">Review your items and proceed to checkout</p>
+      <h1 className="text-3xl font-serif font-medium mb-2 text-center text-gray-900">
+        Your Shopping Cart
+      </h1>
+      <p className="text-center text-gray-500 mb-8">
+        Review your items and proceed to checkout
+      </p>
 
       {localCart.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="flex justify-center mb-6">
             <ShoppingBag className="h-20 w-20 text-gray-300" />
           </div>
-          <h2 className="text-2xl font-medium text-gray-700 mb-4">Your cart is empty</h2>
+          <h2 className="text-2xl font-medium text-gray-700 mb-4">
+            Your cart is empty
+          </h2>
           <p className="text-gray-500 mb-8 max-w-md mx-auto">
-            Discover our exquisite collection of fragrances and add your favorites to the cart.
+            Discover our exquisite collection of fragrances and add your
+            favorites to the cart.
           </p>
           <Button size="lg" className="px-8" onClick={() => navigate("/")}>
             <ShoppingCart className="mr-2 h-5 w-5" />
@@ -282,19 +383,31 @@ export function CartPage() {
                     <div className="flex-1 flex flex-col">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="font-medium text-lg text-gray-900">{item.name}</h3>
+                          <h3 className="font-medium text-lg text-gray-900">
+                            {item.name}
+                          </h3>
                           {item.selectedSize && (
                             <p className="text-sm text-gray-500 mt-1">
-                              Size: {item.selectedSize === "full" ? "Full Size" : item.selectedSize}
+                              Size:{" "}
+                              {item.selectedSize === "full"
+                                ? "Full Size"
+                                : item.selectedSize}
                             </p>
                           )}
-                          {item.brand && <p className="text-sm text-gray-500">Brand: {item.brand}</p>}
+                          {item.brand && (
+                            <p className="text-sm text-gray-500">
+                              Brand: {item.brand}
+                            </p>
+                          )}
                           <p className="text-sm font-medium text-purple-600 mt-1">
                             ${getItemPrice(item).toFixed(2)} each
                           </p>
 
                           {/* Size selector component */}
-                          <SizeSelector item={item} onSizeChange={handleSizeChange} />
+                          <SizeSelector
+                            item={item}
+                            onSizeChange={handleSizeChange}
+                          />
                         </div>
                         <Button
                           variant="ghost"
@@ -312,7 +425,9 @@ export function CartPage() {
                             variant="outline"
                             size="icon"
                             className="h-9 w-9 rounded-r-none border-gray-300"
-                            onClick={() => handleQuantityChange(item._id, item.quantity - 1)}
+                            onClick={() =>
+                              handleQuantityChange(item._id, item.quantity - 1)
+                            }
                             disabled={item.quantity <= 1}
                             aria-label="Decrease quantity"
                           >
@@ -322,20 +437,29 @@ export function CartPage() {
                             type="number"
                             min="1"
                             value={item.quantity}
-                            onChange={(e) => handleQuantityChange(item._id, Number.parseInt(e.target.value) || 1)}
+                            onChange={(e) =>
+                              handleQuantityChange(
+                                item._id,
+                                Number.parseInt(e.target.value) || 1
+                              )
+                            }
                             className="h-9 w-14 rounded-none text-center border-x-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           />
                           <Button
                             variant="outline"
                             size="icon"
                             className="h-9 w-9 rounded-l-none border-gray-300"
-                            onClick={() => handleQuantityChange(item._id, item.quantity + 1)}
+                            onClick={() =>
+                              handleQuantityChange(item._id, item.quantity + 1)
+                            }
                             aria-label="Increase quantity"
                           >
                             <Plus className="h-4 w-4" />
                           </Button>
                         </div>
-                        <div className="font-medium text-lg">${getItemTotal(item).toFixed(2)}</div>
+                        <div className="font-medium text-lg">
+                          ${getItemTotal(item).toFixed(2)}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -372,11 +496,21 @@ export function CartPage() {
                   <p className="text-xs text-gray-500 mt-1">Including VAT</p>
                 </div>
               </div>
-              <Button className="w-full" size="lg" onClick={handleCheckout} disabled={checkoutLoading}>
+              <Button
+                className="w-full"
+                size="lg"
+                onClick={handleCheckout}
+                disabled={checkoutLoading}
+              >
                 {checkoutLoading ? "Processing..." : "Proceed to Checkout"}
               </Button>
               <div className="mt-4 text-center">
-                <Button variant="link" size="sm" className="text-sm" onClick={() => navigate("/")}>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="text-sm"
+                  onClick={() => navigate("/")}
+                >
                   Continue Shopping
                 </Button>
               </div>
@@ -385,6 +519,5 @@ export function CartPage() {
         </div>
       )}
     </div>
-  )
+  );
 }
-
