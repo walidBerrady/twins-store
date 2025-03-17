@@ -9,8 +9,8 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">About Us</h3>
             <p className="text-sm">
-              Parfum is your destination for luxury fragrances. Discover your
-              signature scent today.
+              TWINS FRAGRANCE is your destination for luxury fragrances.
+              Discover your signature scent today.
             </p>
           </div>
           <div>

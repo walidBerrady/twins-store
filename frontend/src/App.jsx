@@ -17,7 +17,7 @@ import HommePage from "./pages/HommePage";
 import FemmePage from "./pages/FemmePage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ConatcPage";
-import { CartPage } from "./pages/CartPage";
+import CartPage from "./pages/CartPage";
 
 import { useUserStore } from "./store/useUserStore";
 import LoadingSpinner from "./components/LoadingSpinner";

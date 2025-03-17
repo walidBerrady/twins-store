@@ -245,28 +245,6 @@ export const useCartStore = create((set, get) => ({
     set({ subtotal, total })
   },
 
-  // Debug function to help troubleshoot
-  debugCart: () => {
-    const { cart } = get()
-    console.log("Current cart state:", cart)
-    cart.forEach((item) => {
-      console.log(`Item: ${item.name}, Size: ${item.selectedSize || "No size"}, Sizes:`, item.sizes)
-
-      // Check if the selected size exists in the sizes object
-      if (item.selectedSize && item.sizes) {
-        if (item.sizes[item.selectedSize]) {
-          console.log(`Price for ${item.selectedSize}: ${item.sizes[item.selectedSize].price}`)
-        } else {
-          console.warn(`Selected size ${item.selectedSize} not found in sizes object`)
-        }
-      }
-
-      // Check if we have a saved size preference in localStorage
-      const savedSize = localStorage.getItem("cart-size-" + item._id)
-      if (savedSize) {
-        console.log(`Saved size preference for ${item.name}: ${savedSize}`)
-      }
-    })
-  },
+  
 }))
 

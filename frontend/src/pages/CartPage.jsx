@@ -161,7 +161,7 @@ const SizeSelector = ({ item, onSizeChange }) => {
   );
 };
 
-export function CartPage() {
+function CartPage() {
   const navigate = useNavigate();
   const {
     total,
@@ -245,9 +245,9 @@ export function CartPage() {
     getCartItems();
     // Debug the cart after loading
     setTimeout(() => {
-      debugCart();
+      clearCart();
     }, 1000);
-  }, [getCartItems, debugCart]);
+  }, [getCartItems, clearCart]);
 
   // Update the useEffect that creates the local cart copy to ensure sizes are properly initialized
   // and ensure it recalculates totals after updating
@@ -521,3 +521,5 @@ export function CartPage() {
     </div>
   );
 }
+
+export default CartPage;

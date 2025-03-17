@@ -1,74 +1,81 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useParams } from "react-router-dom"
-import { ShoppingBag, ArrowLeft, Loader2 } from "lucide-react"
-import useProductStore from "../store/useProductStore"
-import { useCartStore } from "../store/useCartStore"
-import { useUserStore } from "../store/useUserStore"
-import toast from "react-hot-toast"
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { ShoppingBag, ArrowLeft, Loader2 } from "lucide-react";
+import useProductStore from "../store/useProductStore";
+import { useCartStore } from "../store/useCartStore";
+import { useUserStore } from "../store/useUserStore";
+import toast from "react-hot-toast";
 
 export default function SizeCategoryPage() {
-  const { addToCart } = useCartStore()
-  const { user } = useUserStore()
-  const { slug } = useParams()
-  const { products, fetchProducts, loading, error } = useProductStore()
-  const [quantities, setQuantities] = useState({})
-  const [addingToCart, setAddingToCart] = useState({})
+  const { addToCart } = useCartStore();
+  const { user } = useUserStore();
+  const { slug } = useParams();
+  const { products, fetchProducts, loading, error } = useProductStore();
+  const [quantities, setQuantities] = useState({});
+  const [addingToCart, setAddingToCart] = useState({});
 
   // Convert slug to the corresponding size
   const getSizeFromSlug = (slug) => {
     switch (slug) {
       case "5ml-perfumes":
-        return "5ml"
+        return "5ml";
       case "10ml-perfumes":
-        return "10ml"
+        return "10ml";
       case "full-size-perfumes":
-        return "Full"
+        return "Full";
       default:
-        return ""
+        return "";
     }
-  }
+  };
 
-  const size = getSizeFromSlug(slug)
-  const formattedSizeTitle = size === "Full" ? "Full Size" : `${size} Travel Size`
+  const size = getSizeFromSlug(slug);
+  const formattedSizeTitle =
+    size === "Full" ? "Full Size" : `${size} Travel Size`;
 
   useEffect(() => {
     if (size) {
-      fetchProducts({ size })
+      fetchProducts({ size });
     }
-  }, [size, fetchProducts])
+  }, [size, fetchProducts]);
 
   // Check if a product is in stock for the specific size
   const isProductInStock = (product, size) => {
-    return product.sizes?.[size]?.stock > 0
-  }
+    return product.sizes?.[size]?.stock > 0;
+  };
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = async (product) => {
     if (!user) {
-      toast.error("Please log in to add items to your cart.")
-    } else {
-      // Only allow adding to cart if the product is in stock
-      if (!isProductInStock(product, size)) {
-        return
-      }
+      toast.error("Please log in to add items to your cart.");
+      return;
+    }
 
-      // Show loading state
-      setAddingToCart((prev) => ({ ...prev, [product._id]: true }))
+    // Only allow adding to cart if the product is in stock
+    if (!isProductInStock(product, size)) {
+      toast.error(`${product.name} is out of stock in size ${size}`);
+      return;
+    }
 
-      // add to cart with the correct size
-      addToCart({
-        ...product,
-        selectedSize: size,
-        price: product.sizes[size]?.price,
-      })
+    // Show loading state
+    setAddingToCart((prev) => ({ ...prev, [product._id]: true }));
+
+    try {
+      // Pass the product and size directly to addToCart, matching the HommePage implementation
+      await addToCart(product, size);
+
+      toast.success(`Added ${product.name} (${size}) to cart`);
 
       // Simulate a brief loading state
       setTimeout(() => {
-        setAddingToCart((prev) => ({ ...prev, [product._id]: false }))
-      }, 600)
+        setAddingToCart((prev) => ({ ...prev, [product._id]: false }));
+      }, 600);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error("Failed to add item to cart");
+      setAddingToCart((prev) => ({ ...prev, [product._id]: false }));
     }
-  }
+  };
 
   return (
     <div className="bg-gradient-to-b from-white to-gray-50 min-h-screen">
@@ -82,10 +89,13 @@ export default function SizeCategoryPage() {
         </button>
 
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">{formattedSizeTitle} Perfumes</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            {formattedSizeTitle} Perfumes
+          </h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Discover our exquisite collection of {size.toLowerCase()} perfumes, crafted with the finest ingredients to
-            express your unique personality.
+            Discover our exquisite collection of {size.toLowerCase()} perfumes,
+            crafted with the finest ingredients to express your unique
+            personality.
           </p>
           {!loading && !error && (
             <span className="inline-flex items-center px-3 py-1 mt-4 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
@@ -105,7 +115,8 @@ export default function SizeCategoryPage() {
             <div className="flex">
               <div className="ml-3">
                 <p className="text-sm text-red-700">
-                  We couldn't load the products. Please try again later. Error: {error}
+                  We couldn't load the products. Please try again later. Error:{" "}
+                  {error}
                 </p>
                 <button
                   className="mt-2 px-4 py-2 bg-white border border-red-300 rounded-md hover:bg-red-50 transition-colors text-red-700 text-sm font-medium"
@@ -120,13 +131,15 @@ export default function SizeCategoryPage() {
 
         {!loading && !error && products.length === 0 && (
           <div className="text-center py-20">
-            <p className="text-gray-500 text-lg">No perfumes found in this category.</p>
+            <p className="text-gray-500 text-lg">
+              No perfumes found in this category.
+            </p>
           </div>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {products.map((product) => {
-            const isInStock = isProductInStock(product, size)
+            const isInStock = isProductInStock(product, size);
 
             return (
               <div
@@ -135,12 +148,14 @@ export default function SizeCategoryPage() {
               >
                 <div className="relative">
                   <img
-                    src={product.image || "/placeholder.svg?height=256&width=256"}
+                    src={
+                      product.image || "/placeholder.svg?height=256&width=256"
+                    }
                     alt={product.name}
                     className="w-full h-64 object-cover"
                     onError={(e) => {
-                      e.target.src = "/placeholder.svg?height=256&width=256"
-                      e.target.alt = "Product image unavailable"
+                      e.target.src = "/placeholder.svg?height=256&width=256";
+                      e.target.alt = "Product image unavailable";
                     }}
                   />
 
@@ -152,9 +167,12 @@ export default function SizeCategoryPage() {
                 </div>
 
                 <div className="p-4">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1">{product.name}</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1">
+                    {product.name}
+                  </h2>
                   <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                    {product.description || "A luxurious fragrance with unique character and lasting impression."}
+                    {product.description ||
+                      "A luxurious fragrance with unique character and lasting impression."}
                   </p>
 
                   <div className="flex items-center justify-between mb-4">
@@ -165,7 +183,9 @@ export default function SizeCategoryPage() {
                           ${product.sizes[size]?.compareAtPrice.toFixed(2)}
                         </span>
                       )}
-                      <span className="text-xs text-gray-500 font-normal ml-1">/ {size}</span>
+                      <span className="text-xs text-gray-500 font-normal ml-1">
+                        / {size}
+                      </span>
                     </p>
 
                     {isInStock ? (
@@ -194,16 +214,19 @@ export default function SizeCategoryPage() {
                       ) : (
                         <ShoppingBag className="w-4 h-4" />
                       )}
-                      <span>{addingToCart[product._id] ? "Adding..." : "Add to Cart"}</span>
+                      <span>
+                        {addingToCart[product._id]
+                          ? "Adding..."
+                          : "Add to Cart"}
+                      </span>
                     </button>
                   </div>
                 </div>
               </div>
-            )
+            );
           })}
         </div>
       </div>
     </div>
-  )
+  );
 }
-
